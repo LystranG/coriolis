@@ -4,6 +4,7 @@ import TranslatedComponent from './TranslatedComponent';
 import request from 'superagent';
 import Persist from '../stores/Persist';
 import { fetchBuilds, fetchMaterials, fetchShips, fetchProfile } from '../utils/CmdrApi';
+import { getEdomhBlueprintName } from '../utils/EdomhBlueprintNames';
 import { MercCoinSmall, ShoppingIcon } from './SvgIcons';
 const zlib = require('zlib');
 const base64url = require('base64url');
@@ -643,7 +644,10 @@ export default class ModalShoppingList extends TranslatedComponent {
         if (!module.m.blueprint.grade || !module.m.blueprint.grades) {
           continue;
         }
-        if (module.m.blueprint.special) {
+        // Mercenary modules are sold pre-engineered with an unmodifiable experimental
+        // effect built in, and EDOMH models that effect as part of the module blueprint,
+        // so it must not be exported as a separate experimental effect entry.
+        if (module.m.blueprint.special && !module.m.mercModule) {
           let item = "";
           // If the module blueprint fdname contains "Armour_" it's a bulkhead and we need to pre-populate the item field with the correct name from the ship object
           if (module.m.blueprint.fdname.includes("Armour_")) {
@@ -676,7 +680,7 @@ export default class ModalShoppingList extends TranslatedComponent {
           }
           blueprints.push({
             "item": item,
-            "blueprint": module.m.blueprint.fdname,
+            "blueprint": getEdomhBlueprintName(module.m.symbol, module.m.blueprint.fdname) || module.m.blueprint.fdname,
             "grade": module.m.blueprint.grade,
             "highestGradePercentage":1.0
           });
